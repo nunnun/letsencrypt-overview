@@ -5,7 +5,6 @@
 		<meta charset="utf-8">
 
 		<title>Let's Encryptについて</title>
-		<!-- <title>Let's Encrypt - Overview</title> -->
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -14,6 +13,7 @@
 
 		<link rel="stylesheet" href="./reveal/css/reveal.css">
 		<link rel="stylesheet" href="./reveal/css/theme/beige.css" id="theme">
+		<link rel="stylesheet" href="./reveal/lib/css/zenburn.css">
 
 		<!-- Printing and PDF exports -->
 		<script>
@@ -40,6 +40,20 @@
         <section>
           <img src="./img/letsencrypt-logo-horizontal.svg" style="border: none; box-shadow: none; width: 50%;"/>
         </section>
+
+				<section>
+					<h2>自己紹介</h2>
+					<ul>
+						<li><strong><name>なかじま ひろたか</name></strong></li>
+						<li><a href="https://twitter.com/nunnun">@nunnun</a></li>
+						<li>慶應義塾 ITC本部 助教 (AS38635)<br>
+							ISOC Japan Chapter, Secretary<br>
+							W3C Systems Team</li>
+						<li>JANOG初参加<br>
+							お友達になりましょう &amp; 仲良くしてください :)</li>
+					</ul>
+				</section>
+
 
         <section>
 					<h2>何が問題か？</h2>
@@ -193,6 +207,85 @@
           </ul>
         </section>
 
+				<section>
+					<section>
+						<h2>どうやって使うの?</h2>
+						<ul>
+							<li>まだベータ版なのでOSなどへの組み込みはこれから</li>
+							<li>なので、ここからはどうやって使うか紹介します</li>
+							<li>Windowsの方は<a href="https://github.com/Lone-Coder/letsencrypt-win-simple">Windowsクライアント</a>が使えます</li>
+						</ul>
+					</section>
+
+					<section>
+						<h3>インストール</h3>
+						<ul>
+							<li>Debian, Arch linux, FreeBSD, OpenBSDはパッケージ管理からインストール出来るようになります</li>
+							<li>まだのディストリビューションはgithubからソースを取得します</li>
+						</ul>
+<pre><code data-trim data-noescape contenteditable class="bash">$ git clone https://github.com/letsencrypt/letsencrypt
+$ cd letsencrypt
+$ ./letsencrypt-auto --help
+$ # 必要な依存パッケージをインストールした後、sudoによる権限昇格を要求する
+</code></pre>
+					</section>
+
+					<section>
+						<h3>証明書の取得(Apache)</h3>
+						<ol>
+							<li>ServerNameなど<br>正しく設定されているか確認して、コマンドを実行
+							<pre><code class="bash">$ ./letsencrypt-auto --apache</code></pre></li>
+							<li>証明書を取得したドメインの選択を行う</li>
+							<li>緊急時や鍵紛失時のメールアドレスを入力</li>
+							<li>HTTPS接続を必須とするかどうか選択</li>
+							<li>完了!</li>
+						</ol>
+						<p><strong>必要なhttpd.confの設定などは<br>letsencryptが全部やってくれます</strong></p>
+					</section>
+
+					<section>
+						<h3>証明書の取得</h3>
+						<ol>
+							<li>ドメイン所有権を確認します
+								<ul>
+									<li>Webサーバを一時的に停止出来る場合
+										<pre><code data-trim data-noescape class="bash" contenteditable style="width:800px;">$ ./letsencrypt-auto certonly --standalone -d example.com</code></pre>
+									</li>
+									<li>停止出来ない場合　
+										<pre><code data-trim data-noescape class="bash" contenteditable style="width:890px;">$ ./letsencrypt-auto certonly --webroot -w /var/www/example -d example.com</code></pre>
+									</li>
+								</ul>
+							</li>
+							<li>証明書は下記ディレクトリに保存される
+							<pre><code>/etc/letsencrypt/live/[ドメイン名]/fullchain.pem</code></pre>
+							</li>
+						</ol>
+					</section>
+					<section>
+						<h3>証明書の更新</h3>
+						<ul>
+							<li>Let's Encryptで発行される証明書の有効期限は<strong>90日</strong></li>
+							<li>更新作業も自動化したいですよね</li>
+								<li>cronを使えば自動的に更新ができます</li>
+						</ul>
+<pre><code data-trim data-noescape class="bash" contenteditable style="word-wrap:break-word;">$ ./letsencrypt-auto certonly --keep-until-renewal --webroot -w /var/www/example.com -d example.com,www.example.com -w /var/www/thing -d thing.is,m.thing.is</code></pre>
+<pre><code data-trim data-noescape class="bash" contenteditable style="word-wrap:break-word;">#!/bin/sh
+service nginx stop  # or whatever your webserver is
+if ! /path/to/letsencrypt-auto certonly -tvv --standalone --keep -d example.com,www.example.com,thing.is > /var/log/letsencrypt/renew.log 2>&1 ; then
+    echo Automated renewal failed:
+    cat /var/log/letsencrypt/renew.log
+    exit 1
+fi
+service nginx start # or whatever your webserver is</code></pre>
+					</section>
+
+					<section>
+						<h3>詳しくはWebで</h3>
+						<p>詳細な利用方法は<a href="https://letsencrypt.readthedocs.org/en/latest/intro.html">Webサイト</a>を見てください</p>
+					</section>
+
+				</section>
+
         <section>
           <img src="./img/verifiedby.png"/>
         </section>
@@ -218,6 +311,16 @@
 				history: true,
 				center: true,
 				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				dependencies: [
+					{ src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'reveal/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'reveal/plugin/zoom-js/zoom.js', async: true },
+					{ src: 'reveal/plugin/notes/notes.js', async: true }
+				]
+
 			});
 
       document.body.onclick = function() {
